@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perudo en ligne</title>
+<meta name="description" content="Le jeu de dés menteur, en solo contre l'ordi ou en ligne avec tes amis.">
+<meta name="theme-color" content="#0e2524">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Perudo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e2524;--card:#163634;--card2:#1d4542;--cream:#f4ead3;--ink:#1b1a17;--accent:#ea7a3c;--gold:#f2b631;--red:#e05252;--green:#4fbf87;--muted:#9fb9b5}
+*{box-sizing:border-box}
+html,body{margin:0;background:radial-gradient(ellipse at top,#16403d 0%,var(--bg) 60%) fixed;color:var(--cream);font-family:'Bricolage Grotesque',system-ui,sans-serif;min-height:100%}
+#app{max-width:560px;margin:0 auto;padding:14px 14px 40px;padding-top:max(14px,env(safe-area-inset-top))}
+h1{font-size:44px;font-weight:800;letter-spacing:.04em;margin:18px 0 0;text-align:center}
+h1 span{color:var(--accent)}
+.tag{text-align:center;color:var(--muted);margin:2px 0 22px}
+.box{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 6px 20px #0004}
+.box h2{margin:0 0 10px;font-size:18px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+input,select{width:100%;padding:12px 14px;border-radius:12px;border:2px solid transparent;background:var(--card2);color:var(--cream);font:inherit;font-size:16px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center}
+.row>*{flex:1}
+button{font:inherit;font-weight:600;font-size:16px;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:var(--card2);color:var(--cream);transition:transform .08s,opacity .2s}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.35;cursor:not-allowed}
+.btn-main{background:var(--accent);color:#fff}
+.btn-gold{background:var(--gold);color:var(--ink)}
+.btn-red{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;color:var(--muted);text-decoration:underline;font-weight:400;font-size:14px;padding:8px}
+.full{width:100%}
+.mt{margin-top:10px}
+.muted{color:var(--muted);font-size:14px}
+.small{font-size:13px}
+.linkbtn{display:block;margin:6px auto 0;background:transparent;color:var(--gold);font-size:14px;padding:6px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px}
+.logo{font-weight:800;font-size:22px;letter-spacing:.04em}
+.logo span{color:var(--accent)}
+.chip{background:var(--card2);padding:6px 10px;border-radius:99px;font-size:13px;white-space:nowrap}
+.chip b{color:var(--gold);letter-spacing:.15em}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:10px 0}
+.pl{background:var(--card);border-radius:14px;padding:9px 11px;border:2px solid transparent;position:relative}
+.pl.on{border-color:var(--accent);box-shadow:0 0 0 4px #ea7a3c33}
+.pl.out{opacity:.35}
+.pl .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cups{font-size:13px;letter-spacing:2px;color:var(--gold);margin-top:3px}
+.cups .e{color:#ffffff30}
+.badge{position:absolute;top:-8px;right:6px;background:var(--gold);color:var(--ink);font-size:10px;font-weight:800;padding:2px 6px;border-radius:99px}
+.bid{background:var(--card);border-radius:18px;padding:16px;text-align:center;margin:12px 0}
+.bid .lbl{color:var(--muted);font-size:13px}
+.bid .big{display:flex;justify-content:center;align-items:center;gap:12px;font-size:46px;font-weight:800;margin:6px 0}
+.bid .big .die{width:54px;height:54px}
+.turn{font-weight:600}
+.turn.me{color:var(--accent)}
+.hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px}
+.die{width:46px;height:46px;display:inline-block;vertical-align:middle}
+.die rect{fill:var(--cream)}
+.die .p{fill:var(--ink)}
+.die.paco rect{fill:var(--gold)}
+.die.hl rect{stroke:var(--accent);stroke-width:9}
+.die.dim{opacity:.3}
+.die.sm{width:28px;height:28px}
+.ctrl{background:var(--card);border-radius:18px;padding:14px;margin:12px 0;border:2px solid var(--accent)}
+.qty{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
+.qty button{width:52px;height:52px;font-size:26px;padding:0;border-radius:50%}
+.qty .n{font-size:40px;font-weight:800;min-width:60px;text-align:center}
+.faces{display:flex;justify-content:space-between;gap:2px;margin-bottom:12px}
+.faces button{flex:1;min-width:0;padding:3px;background:transparent;border:3px solid transparent;border-radius:14px}
+.faces button.sel{border-color:var(--accent);background:#ea7a3c22}
+.faces .die{width:100%;height:auto;max-width:44px;aspect-ratio:1}
+.acts{display:grid;gap:8px}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px}
+.log{font-size:13px;color:var(--muted);line-height:1.6;padding:0 4px}
+.log div:first-child{color:var(--cream)}
+.overlay{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px;z-index:9;animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.modal{background:var(--card);border-radius:20px;padding:18px;max-width:520px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 50px #0008;animation:up .3s}
+.modal h2{margin:0;font-size:30px;text-align:center;color:var(--accent)}
+.modal h3{margin:0 0 4px;font-size:22px;text-align:center}
+.modal .sub{text-align:center;color:var(--muted);margin:4px 0 12px}
+.rv{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #ffffff12}
+.rv .nm{width:92px;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv .ds{display:flex;gap:4px;flex-wrap:wrap}
+.verdict{text-align:center;font-size:18px;font-weight:600;margin:14px 0 6px}
+.lob{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #ffffff12}
+.lob button{padding:6px 10px;font-size:13px}
+.code{font-size:40px;font-weight:800;letter-spacing:.3em;text-align:center;color:var(--gold);margin:6px 0}
+.warn{background:#e0525233;border:1px solid var(--red);padding:10px;border-radius:12px;font-size:14px;margin:10px 0}
+.note{background:#f2b63122;border:1px solid var(--gold);padding:10px;border-radius:12px;font-size:13px;margin:8px 0}
+.win{font-size:56px;text-align:center}
+/* options */
+.opt{border-bottom:1px solid #ffffff12;padding:10px 0}
+.opt:last-child{border-bottom:0}
+.opt-h{display:flex;align-items:center;gap:10px}
+.opt-h .t{flex:1;font-weight:600}
+.opt-h .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.info{width:30px;height:30px;padding:0;border-radius:50%;font-size:14px;background:var(--card2);color:var(--gold);flex:none}
+.info.open{background:var(--gold);color:var(--ink)}
+.expl{font-size:14px;line-height:1.5;color:#d8e6e3;background:#0003;border-radius:12px;padding:10px 12px;margin-top:8px}
+.expl b{color:var(--cream)}
+.sw{position:relative;width:50px;height:30px;flex:none;padding:0;border-radius:99px;background:#ffffff26}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--green)}
+.sw.on::after{left:23px}
+.sw:disabled{opacity:.6}
+.dsel{width:auto;padding:6px 10px;font-size:15px}
+.state{font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px;background:#ffffff1a;color:var(--muted)}
+.state.on{background:#4fbf8733;color:var(--green)}
+/* installation */
+.inst-icon{width:72px;height:72px;border-radius:18px;display:block;margin:0 auto 10px;box-shadow:0 6px 18px #0006}
+.steps{margin:12px 0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:15px;line-height:1.4}
+.steps li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.ico{display:inline-flex;vertical-align:middle;background:var(--card2);border-radius:6px;padding:2px 6px;font-size:13px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>var peerFailed=false;</script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" async onload="peerReady()" onerror="peerFailed=true;peerReady()"></script>
+<script>
+/* ================= utilitaires ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd = n => Math.floor(Math.random() * n);
+const BOTS = ['Pedro','Lucía','Mateo','Inés','Diego','Rosa','Tito','Carmen'];
+const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} } };
+const inFrame = (() => { try { return window.self !== window.top; } catch(e){ return true; } })();
+
+/* ================= options du jeu ================= */
+const DEF_OPTS = { pacos:true, dudo:true, calza:true, palifico:true, dice:5 };
+const OPT_INFO = [
+  { k:'dudo', t:'Dudo', s:'« Je doute ! » : contester une annonce',
+    d:`À ton tour, au lieu d'annoncer plus haut, tu dis <b>« Dudo ! »</b> : tu penses que l'annonce précédente est <b>trop haute</b> (il y a moins de dés que ce qui a été annoncé).<br><br>Tout le monde révèle ses dés et on compte :<br>• s'il y en a <b>moins</b> que l'annonce, celui qui l'a faite perd un dé ;<br>• s'il y en a <b>autant ou plus</b>, c'est toi qui perds un dé.<br><br><i>Exemple : Lucía annonce « sept 4 ». Tu dis Dudo. On compte 5 dés « 4 » (pacos compris) : Lucía perd un dé.</i><br><br>C'est le cœur du jeu, on te conseille de le garder.` },
+  { k:'calza', t:'Calza', s:'« Pile poil ! » : parier sur le compte exact',
+    d:`À ton tour, tu dis <b>« Calza ! »</b> : tu paries que l'annonce précédente est <b>exactement</b> juste, ni plus ni moins.<br><br>On révèle :<br>• si c'est <b>pile</b> le bon nombre, tu <b>regagnes un dé</b> (sans dépasser le nombre de départ) ;<br>• sinon, tu perds un dé.<br><br>C'est risqué, mais c'est le seul moyen de récupérer des dés perdus.` },
+  { k:'pacos', t:'Pacos jokers', s:'Les 1 comptent pour n\'importe quelle valeur',
+    d:`Les dés qui font <b>1</b> s'appellent des <b>pacos</b>. Ils comptent comme <b>n'importe quelle valeur</b> au moment de compter.<br><br><i>Exemple : on annonce « cinq 3 ». Sur la table il y a trois « 3 » et deux « 1 » : ça fait bien cinq.</i><br><br>On peut aussi annoncer des pacos directement. Dans ce cas on peut <b>diviser la quantité par deux</b> (arrondi au-dessus) : après « six 4 », on peut dire « trois pacos ». Pour revenir à une autre valeur, il faut <b>doubler + 1</b> : après « trois pacos », il faut au moins « sept 5 ». On ne peut pas ouvrir une manche avec des pacos.<br><br>Désactivé : les 1 sont une valeur comme les autres, la plus basse.` },
+  { k:'palifico', t:'Palifico', s:'Une manche spéciale quand il ne reste qu\'un dé',
+    d:`La <b>première fois</b> qu'un joueur tombe à <b>1 seul dé</b>, c'est lui qui ouvre la manche suivante, en mode <b>Palifico</b> :<br>• les pacos <b>ne sont plus jokers</b> ;<br>• la <b>valeur</b> qu'il annonce est <b>bloquée</b> pour toute la manche : les autres ne peuvent monter que la quantité.<br><br><i>Exemple : il ouvre à « un 6 ». Le suivant doit dire « deux 6 », puis « trois 6 »… jusqu'à ce que quelqu'un dise Dudo.</i><br><br>Seuls les joueurs qui ont eux aussi 1 seul dé peuvent changer de valeur. Ça donne une vraie chance au joueur en difficulté. Pas de Palifico quand il ne reste que 2 joueurs.` },
+];
+function loadOpts(){ try { return Object.assign({}, DEF_OPTS, JSON.parse(store.get('perudo-opts') || '{}')); } catch(e){ return {...DEF_OPTS}; } }
+let homeOpts = loadOpts();
+const openInfo = new Set();
+let optWarn = '';
+
+/* ================= état global ================= */
+let S = null, me = null, mode = null;     // mode : solo | host | client
+let roomCap = null, roomState = 'loading', net = null, code = '';
+let myName = store.get('perudo-name') || '';
+let sel = { q:1, f:2, key:'' };
+let lastStateAt = 0, errMsg = '', joining = false, rulesOpen = false;
+const timers = {};
+const curOpts = () => (S && S.opts) || homeOpts;
+
+/* ================= moteur de jeu ================= */
+function newState(opts){ return { v:0, phase:'lobby', opts:{...opts}, players:[], hands:{}, turn:0, bid:null, pal:false, log:[], reveal:null, winner:null, next:0 }; }
+const aliveIdx = S => S.players.map((p,i) => p.n > 0 ? i : -1).filter(i => i >= 0);
+function nextAlive(S, i){ const N = S.players.length; for (let k=1; k<=N; k++){ const j=(i+k)%N; if (S.players[j].n>0) return j; } return i; }
+const totalDice = S => S.players.reduce((a,p) => a + p.n, 0);
+function addLog(S, t){ S.log.unshift(t); S.log = S.log.slice(0, 6); }
+const bidTxt = (q,f) => f === 1 ? `${q} paco${q>1?'s':''}` : `${q} × ${f}`;
+const wild = (S, f) => S.opts.pacos && !S.pal && f !== 1;
+const counts = (S, d, f) => d === f || (wild(S,f) && d === 1);
+
+function startGame(S){
+  S.players.forEach(p => { p.n = S.opts.dice; p.pu = false; });
+  S.winner = null; S.log = [];
+  startRound(S, rnd(S.players.length));
+}
+function startRound(S, st){
+  if (S.players[st].n === 0) st = nextAlive(S, st);
+  S.hands = {};
+  S.players.forEach(p => { if (p.n > 0) S.hands[p.id] = Array.from({length:p.n}, () => 1 + rnd(6)).sort((a,b)=>a-b); });
+  S.bid = null; S.turn = st; S.reveal = null; S.phase = 'play';
+  const p = S.players[st];
+  S.pal = S.opts.palifico && p.n === 1 && !p.pu && aliveIdx(S).length > 2;
+  if (S.pal){ p.pu = true; addLog(S, `🔒 Palifico pour ${p.name} : valeur bloquée${S.opts.pacos ? ', pacos non jokers' : ''}.`); }
+}
+function countFace(S, f){
+  let c = 0;
+  for (const id in S.hands) for (const d of S.hands[id]) if (counts(S, d, f)) c++;
+  return c;
+}
+function validBid(S, q, f, idx){
+  const T = totalDice(S);
+  if (!(q >= 1 && q <= T && f >= 1 && f <= 6)) return false;
+  const b = S.bid;
+  if (!b) return S.pal || !S.opts.pacos || f !== 1;
+  if (S.pal){
+    if (S.players[idx].n === 1) return q > b.q || (q === b.q && f > b.f);
+    return f === b.f && q > b.q;
+  }
+  if (!S.opts.pacos) return q > b.q || (q === b.q && f > b.f);
+  if (b.f !== 1){
+    if (f === 1) return q >= Math.ceil(b.q / 2);
+    return q > b.q || (q === b.q && f > b.f);
+  }
+  if (f === 1) return q > b.q;
+  return q >= b.q * 2 + 1;
+}
+function minQ(S, f, idx){ const T = totalDice(S); for (let q=1; q<=T; q++) if (validBid(S,q,f,idx)) return q; return null; }
+function anyBid(S, idx){ for (let f=1; f<=6; f++) if (minQ(S,f,idx) != null) return true; return false; }
+
+function act(S, idx, a){
+  if (!a || S.phase !== 'play' || idx !== S.turn) return false;
+  const p = S.players[idx];
+  if (a.type === 'bid'){
+    const q = a.q|0, f = a.f|0;
+    if (!validBid(S,q,f,idx)) return false;
+    S.bid = { q, f, by: idx };
+    addLog(S, `${p.name} : ${bidTxt(q,f)}`);
+    S.turn = nextAlive(S, idx);
+    return true;
+  }
+  if (!S.bid || S.bid.by === idx) return false;
+  const b = S.bid, bidder = S.players[b.by], actual = countFace(S, b.f);
+  let loser = -1;
+  if (a.type === 'dudo' && S.opts.dudo){
+    const ok = actual >= b.q;
+    loser = ok ? idx : b.by;
+    S.players[loser].n--;
+    S.reveal = { type:'dudo', q:b.q, f:b.f, actual, caller:idx, bidder:b.by, loser, gain:false,
+      text: ok ? `Il y en avait ${actual} : l'annonce tenait. ${p.name} perd un dé.`
+               : `Il n'y en avait que ${actual}. ${bidder.name} perd un dé.` };
+    S.next = loser;
+    addLog(S, `${p.name} dit Dudo → ${S.players[loser].name} perd un dé`);
+  } else if (a.type === 'calza' && S.opts.calza){
+    const ok = actual === b.q;
+    if (ok){ if (p.n < S.opts.dice) p.n++; } else { p.n--; loser = idx; }
+    S.reveal = { type:'calza', q:b.q, f:b.f, actual, caller:idx, bidder:b.by, loser, gain:ok,
+      text: ok ? `Pile ${actual} ! ${p.name} ${p.n === S.opts.dice ? 'a déjà tous ses dés, mais bravo' : 'regagne un dé'}.`
+               : `Il y en avait ${actual}, pas ${b.q}. ${p.name} perd un dé.` };
+    S.next = idx;
+    addLog(S, `${p.name} dit Calza → ${ok ? 'réussi !' : 'raté'}`);
+  } else return false;
+  if (loser >= 0 && S.players[loser].n === 0) addLog(S, `💀 ${S.players[loser].name} est éliminé.`);
+  S.phase = 'reveal';
+  return true;
+}
+function endReveal(S){
+  const al = aliveIdx(S);
+  if (al.length <= 1){ S.phase = 'over'; S.winner = al[0]; S.reveal = null; addLog(S, `🏆 ${S.players[al[0]].name} remporte la partie !`); return; }
+  startRound(S, S.next);
+}
+
+/* ================= IA des bots ================= */
+function botMove(S, idx){
+  const o = S.opts, p = S.players[idx], my = S.hands[p.id] || [], T = totalDice(S), unk = T - my.length;
+  const mine = f => my.filter(d => counts(S, d, f)).length;
+  const prob = f => wild(S, f) ? 1/3 : 1/6;
+  const exp = f => mine(f) + unk * prob(f);
+  const b = S.bid;
+  if (b){
+    const diff = b.q - exp(b.f);
+    if (o.dudo && diff > 1.2 + Math.random() * 1.3) return { type:'dudo' };
+    if (o.calza && Math.abs(diff) < 0.6 && p.n < o.dice && Math.random() < (o.dudo ? 0.12 : 0.4)) return { type:'calza' };
+    if (!o.dudo && o.calza && diff > 0.5 && Math.random() < 0.5) return { type:'calza' };
+  }
+  let best = null;
+  for (let f = 1; f <= 6; f++){
+    let q = minQ(S, f, idx); if (q == null) continue;
+    if (!b){ const g = Math.max(q, Math.floor(exp(f) * 0.75 - Math.random())); if (validBid(S,g,f,idx)) q = g; }
+    const sc = exp(f) - q + Math.random() * 0.8 - (f === 1 && wild(S,2) ? 0.3 : 0);
+    if (!best || sc > best.sc) best = { q, f, sc };
+  }
+  const challenge = o.dudo ? { type:'dudo' } : { type:'calza' };
+  if (!best) return challenge;
+  if (b && o.dudo && best.sc < -1.3) return challenge;
+  return { type:'bid', q:best.q, f:best.f };
+}
+
+/* ================= contrôleur (solo / hôte) ================= */
+const isHost = () => mode === 'solo' || mode === 'host';
+function changed(){ S.v++; render(); if (mode === 'host') broadcast(); schedule(); }
+function schedule(){
+  const v = S.v;
+  clearTimeout(timers.bot); clearTimeout(timers.rev);
+  if (S.phase === 'play' && S.players[S.turn].bot){
+    timers.bot = setTimeout(() => {
+      if (S.v !== v) return;
+      const idx = S.turn;
+      if (act(S, idx, botMove(S, idx)) || act(S, idx, { type:'dudo' }) || act(S, idx, { type:'calza' })) changed();
+    }, 1200 + rnd(1000));
+  } else if (S.phase === 'reveal'){
+    timers.rev = setTimeout(() => { if (S.v === v && S.phase === 'reveal'){ endReveal(S); changed(); } }, 7000);
+  }
+}
+function applyFrom(id, a){
+  if (!S) return;
+  const idx = S.players.findIndex(p => p.id === id);
+  if (idx < 0 || (S.players[idx].bot && id !== me)) return;
+  if (act(S, idx, a)) changed();
+}
+function doAction(a){
+  if (isHost()) applyFrom(me, a);
+  else if (net) net.sendAct(a);
+}
+function broadcast(){ if (net && mode === 'host' && S) net.sendState(S); }
+
+/* ================= réseau ================= */
+// Sur claude.ai : capacité « room ». Sur un site web classique : PeerJS (WebRTC, pair à pair).
+(async () => {
+  try {
+    if (!window.claude || !claude.use) throw 0;
+    roomCap = await claude.use('room');
+    roomState = roomCap ? 'ok' : 'off';
+  } catch (e) { roomState = 'off'; }
+  setTimeout(() => { if (!S) render(); }, 0);
+})();
+function peerReady(){ if (!S) render(); }
+// Dans claude.ai (page intégrée), seul « room » marche ; sur un vrai site, PeerJS.
+const netKind = () => roomState === 'ok' ? 'room' : (!inFrame && window.Peer ? 'peer' : null);
+const onlineStatus = () => netKind() ? 'ok' : ((roomState === 'loading' && inFrame) || (!inFrame && !window.Peer && !peerFailed) ? 'loading' : 'off');
+
+function RoomNet(){
+  let R = null, hostPeer = null;
+  async function enter(name){
+    R = await roomCap.join(name);
+    return new Promise(res => {
+      let done = false;
+      const chk = () => { const m = R.peers().find(p => p.sameTab); if (m && !done){ done = true; res(m.peer); } };
+      R.onPeers(chk); chk();
+      setTimeout(() => { if (!done){ done = true; res(null); } }, 7000);
+    });
+  }
+  return {
+    async host(c, h){
+      const id = await enter('perudo-' + c);
+      R.on('join', m => { if (!m.isMe) h.join(m.peer, m.data && m.data.name); });
+      R.on('act',  m => { if (!m.isMe) h.act(m.peer, m.data); });
+      R.onPeers(ch => { ch.left.forEach(p => h.leave(p.peer)); if (ch.joined.length) h.resend(); });
+      return id || ('h' + rnd(1e9));
+    },
+    sendState(S){ if (R) R.emit('state', S).catch(() => {}); },
+    async client(c, h){
+      const id = await enter('perudo-' + c);
+      if (!id) throw new Error('noid');
+      R.on('state', m => {
+        if (m.isMe || !m.data || !Array.isArray(m.data.players)) return;
+        if (!hostPeer) hostPeer = m.peer;
+        if (m.peer === hostPeer) h.state(m.data);
+      });
+      return id;
+    },
+    sendJoin(name){ if (R) R.emit('join', { name }).catch(() => {}); },
+    sendAct(a){ if (R) R.emit('act', a).catch(() => {}); },
+    close(){ if (R) R.leave().catch(() => {}); R = null; }
+  };
+}
+
+function PeerNet(){
+  const PFX = 'perudo-jeu-fr-';
+  let peer = null, conns = {}, conn = null;
+  // Chaque joueur ne reçoit que SES dés (sauf pendant la révélation).
+  const filt = (S, id) => (S.phase === 'reveal' || S.phase === 'over') ? S : { ...S, hands: S.hands[id] ? { [id]: S.hands[id] } : {} };
+  return {
+    host(c, h){
+      return new Promise((res, rej) => {
+        let opened = false;
+        peer = new Peer(PFX + c);
+        peer.on('open', id => { opened = true; res(id); });
+        peer.on('error', e => { if (!opened) rej(e); });
+        peer.on('disconnected', () => { try { peer.reconnect(); } catch(e){} });
+        peer.on('connection', cn => {
+          cn.on('open', () => { conns[cn.peer] = cn; h.resend(); });
+          cn.on('data', d => {
+            if (!d || typeof d !== 'object') return;
+            if (d.t === 'join') h.join(cn.peer, d.name);
+            else if (d.t === 'act') h.act(cn.peer, d.a);
+          });
+          cn.on('close', () => { delete conns[cn.peer]; h.leave(cn.peer); });
+          cn.on('error', () => {});
+        });
+        setTimeout(() => { if (!opened) rej(new Error('timeout')); }, 12000);
+      });
+    },
+    sendState(S){ for (const id in conns){ try { conns[id].send(filt(S, id)); } catch(e){} } },
+    client(c, h){
+      return new Promise((res, rej) => {
+        let ok = false;
+        peer = new Peer();
+        peer.on('open', () => {
+          conn = peer.connect(PFX + c, { reliable: true });
+          conn.on('open', () => { ok = true; res(peer.id); });
+          conn.on('data', d => { if (d && Array.isArray(d.players)) h.state(d); });
+          conn.on('close', () => { lastStateAt = 0; render(); });
+        });
+        peer.on('error', e => { if (!ok) rej(e); });
+        setTimeout(() => { if (!ok) rej(new Error('timeout')); }, 15000);
+      });
+    },
+    sendJoin(name){ if (conn && conn.open) conn.send({ t:'join', name }); },
+    sendAct(a){ if (conn && conn.open) conn.send({ t:'act', a }); },
+    close(){ try { if (peer) peer.destroy(); } catch(e){} peer = null; conns = {}; conn = null; }
+  };
+}
+
+const cleanName = n => String(n || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 14) || 'Joueur';
+const genCode = () => Array.from({length:4}, () => 'abcdefghjkmnpqrstuvwxyz'[rnd(23)]).join('');
+
+async function createOnline(){
+  const kind = netKind();
+  if (!kind){ errMsg = "Le mode en ligne n'est pas disponible ici."; render(); return; }
+  if (joining) return; joining = true; errMsg = ''; render();
+  const handlers = {
+    join(id, name){
+      if (!S) return;
+      if (S.players.some(p => p.id === id) || S.phase !== 'lobby' || S.players.length >= 6){ broadcast(); return; }
+      name = cleanName(name);
+      S.players.push({ id, name, bot:false, n:S.opts.dice });
+      addLog(S, `${name} a rejoint la table.`);
+      changed();
+    },
+    act(id, a){ applyFrom(id, a); },
+    leave(id){
+      if (!S) return;
+      const i = S.players.findIndex(x => x.id === id && !x.bot);
+      if (i < 0 || id === me) return;
+      if (S.phase === 'lobby') S.players.splice(i, 1);
+      else { S.players[i].bot = true; S.players[i].name += ' 🤖'; addLog(S, `${S.players[i].name} est parti, un bot prend sa place.`); }
+      changed();
+    },
+    resend(){ broadcast(); }
+  };
+  try {
+    for (let t = 0; ; t++){
+      net = kind === 'room' ? RoomNet() : PeerNet();
+      code = genCode();
+      try { me = await net.host(code, handlers); break; }
+      catch (e){ net.close(); net = null; if (t >= 2) throw e; }
+    }
+    mode = 'host';
+    S = newState(homeOpts);
+    S.players.push({ id: me, name: cleanName(myName), bot:false, n:S.opts.dice });
+    timers.keep = setInterval(broadcast, 2500);
+    changed();
+  } catch (e) {
+    errMsg = "Impossible de créer la table. Vérifie ta connexion et réessaie.";
+    mode = null; S = null; net = null;
+  }
+  joining = false; render();
+}
+
+async function joinOnline(c){
+  c = (c || '').trim().toLowerCase();
+  if (!/^[a-z]{4}$/.test(c)){ errMsg = 'Le code fait 4 lettres.'; render(); return; }
+  const kind = netKind();
+  if (!kind){ errMsg = "Le mode en ligne n'est pas disponible ici."; render(); return; }
+  if (joining) return; joining = true; errMsg = ''; render();
+  try {
+    net = kind === 'room' ? RoomNet() : PeerNet();
+    me = await net.client(c, {
+      state(d){
+        if (S && d.v <= S.v && S.v - d.v < 1000){ lastStateAt = Date.now(); return; }
+        S = d; lastStateAt = Date.now(); render();
+      }
+    });
+    code = c; mode = 'client'; lastStateAt = Date.now();
+    const hello = () => { if (!S || (S.phase === 'lobby' && !S.players.some(p => p.id === me))) net && net.sendJoin(cleanName(myName)); };
+    hello(); timers.hello = setInterval(hello, 2000);
+    timers.watch = setInterval(render, 4000);
+  } catch (e) {
+    const notFound = e && e.type === 'peer-unavailable';
+    errMsg = notFound ? `Aucune table avec le code « ${c.toUpperCase()} ». Vérifie le code.` : "Impossible de rejoindre cette table. Vérifie le code et ta connexion.";
+    if (net) net.close(); mode = null; net = null; S = null;
+  }
+  joining = false; render();
+}
+
+function startSolo(n){
+  mode = 'solo'; me = 'me'; code = '';
+  S = newState(homeOpts);
+  S.players.push({ id:'me', name: cleanName(myName), bot:false, n:5 });
+  const names = [...BOTS].sort(() => Math.random() - .5);
+  for (let i = 0; i < n; i++) S.players.push({ id:'b'+i, name:names[i], bot:true, n:5 });
+  startGame(S); changed();
+}
+function leave(){
+  Object.values(timers).forEach(t => { clearTimeout(t); clearInterval(t); });
+  if (net) net.close();
+  net = null; S = null; mode = null; me = null; code = ''; errMsg = ''; rulesOpen = false;
+  render();
+}
+
+/* ================= installation sur le téléphone ================= */
+let deferredPrompt = null, installOpen = false;
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const ua = navigator.userAgent || '';
+const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /android/i.test(ua);
+const isMobile = isIOS || isAndroid || /mobile/i.test(ua);
+const canOfferInstall = () => !isStandalone();
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; if (installOpen || !S) render(); });
+window.addEventListener('appinstalled', () => { installOpen = false; deferredPrompt = null; store.set('perudo-noinstall', '1'); render(); });
+function autoInstall(){
+  if (!canOfferInstall() || store.get('perudo-noinstall')) return;
+  try { if (sessionStorage.getItem('perudo-inst-seen')) return; sessionStorage.setItem('perudo-inst-seen', '1'); } catch(e){}
+  if (!isMobile && !deferredPrompt) return;
+  if (!S){ installOpen = true; render(); }
+}
+setTimeout(autoInstall, 1500);
+if ('serviceWorker' in navigator && !inFrame && /^https?:/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+function installHTML(){
+  let body;
+  if (deferredPrompt){
+    body = `<p class="muted" style="text-align:center">Lance Perudo en un geste depuis ton écran d'accueil, en plein écran, comme une vraie appli.</p>
+      <button class="btn-main full mt" data-a="inst-go">📲 Installer l'appli</button>`;
+  } else if (isIOS){
+    body = `<p class="muted" style="text-align:center">Lance Perudo en un geste depuis ton écran d'accueil, en plein écran.</p>
+      <ol class="steps">
+        <li><span>Ouvre cette page dans <b>Safari</b>.</span></li>
+        <li><span>Touche le bouton <b>Partager</b> <span class="ico">⬆︎</span> en bas de l'écran.</span></li>
+        <li><span>Choisis <b>« Sur l'écran d'accueil »</b> puis <b>Ajouter</b>.</span></li>
+      </ol>`;
+  } else {
+    body = `<p class="muted" style="text-align:center">Lance Perudo en un geste depuis ton écran d'accueil, en plein écran.</p>
+      <ol class="steps">
+        <li><span>Ouvre le <b>menu</b> du navigateur <span class="ico">⋮</span> (en haut à droite dans Chrome).</span></li>
+        <li><span>Choisis <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</span></li>
+        <li><span>Confirme : l'icône Perudo apparaît avec tes autres applis.</span></li>
+      </ol>`;
+  }
+  return `<div class="overlay" data-a="inst-bg"><div class="modal">
+    <img class="inst-icon" src="icon-192.png" alt="" onerror="this.style.display='none'">
+    <h3>Ajouter Perudo à ton téléphone ?</h3>
+    ${body}
+    <button class="full mt" data-a="inst-later">Plus tard</button>
+    <button class="btn-ghost full" data-a="inst-never">Ne plus me proposer</button>
+  </div></div>`;
+}
+
+/* ================= rendu ================= */
+const PIPS = {1:[[50,50]],2:[[28,28],[72,72]],3:[[27,27],[50,50],[73,73]],4:[[28,28],[72,28],[28,72],[72,72]],5:[[27,27],[73,27],[50,50],[27,73],[73,73]],6:[[28,25],[72,25],[28,50],[72,50],[28,75],[72,75]]};
+const STAR = (() => { let s=''; for (let i=0;i<10;i++){ const r = i%2 ? 11 : 26, a = Math.PI/5*i - Math.PI/2; s += (i?'L':'M') + (50+r*Math.cos(a)).toFixed(1) + ' ' + (50+r*Math.sin(a)).toFixed(1); } return s + 'Z'; })();
+function die(f, cls=''){
+  const paco = f === 1 && curOpts().pacos;
+  const inner = paco ? `<path class="p" d="${STAR}"/>` : PIPS[f].map(([x,y]) => `<circle class="p" cx="${x}" cy="${y}" r="9"/>`).join('');
+  return `<svg class="die ${paco?'paco':''} ${cls}" viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="20"/>${inner}</svg>`;
+}
+
+function render(){
+  const app = $('#app');
+  const y = window.scrollY;
+  if (!S){ app.innerHTML = homeHTML() + (installOpen ? installHTML() : ''); }
+  else if (S.phase === 'lobby'){ app.innerHTML = lobbyHTML() + (rulesOpen ? rulesHTML() : ''); }
+  else { app.innerHTML = gameHTML() + (rulesOpen ? rulesHTML() : ''); }
+  window.scrollTo(0, y);
+}
+
+function optsHTML(o, editable){
+  return OPT_INFO.map(i => {
+    const on = !!o[i.k], open = openInfo.has(i.k);
+    return `<div class="opt">
+      <div class="opt-h">
+        ${editable ? `<button class="sw ${on?'on':''}" data-a="opt" data-k="${i.k}" aria-label="${i.t}"></button>` : `<span class="state ${on?'on':''}">${on?'Activé':'Désactivé'}</span>`}
+        <div class="t">${i.t}<small>${i.s}</small></div>
+        <button class="info ${open?'open':''}" data-a="info" data-k="${i.k}" aria-label="Explication">?</button>
+      </div>
+      ${open ? `<div class="expl">${i.d}</div>` : ''}
+    </div>`;
+  }).join('') + `<div class="opt"><div class="opt-h">
+      ${editable ? `<select class="dsel" data-a="dice">${[3,4,5,6].map(n => `<option value="${n}" ${o.dice===n?'selected':''}>${n}</option>`).join('')}</select>` : `<span class="state on">${o.dice}</span>`}
+      <div class="t">Dés par joueur<small>Moins de dés = parties plus courtes</small></div></div></div>
+    ${optWarn && editable ? `<div class="note">${esc(optWarn)}</div>` : ''}`;
+}
+
+function homeHTML(){
+  const st = onlineStatus();
+  return `
+  <h1>PERU<span>DO</span></h1>
+  <div class="tag">Le jeu de dés menteur</div>
+  ${errMsg ? `<div class="warn">${esc(errMsg)}</div>` : ''}
+  <div class="box">
+    <label>Ton pseudo</label>
+    <input id="name" maxlength="14" placeholder="Maël" value="${esc(myName)}">
+  </div>
+  <div class="box">
+    <h2>🎲 Jouer seul contre l'ordi</h2>
+    <div class="row">
+      <select id="nb">${[1,2,3,4,5].map(n => `<option value="${n}" ${n===3?'selected':''}>${n} adversaire${n>1?'s':''}</option>`).join('')}</select>
+      <button class="btn-main" data-a="solo">Jouer</button>
+    </div>
+  </div>
+  <div class="box">
+    <h2>🌐 Jouer avec des amis</h2>
+    ${st === 'ok' ? `
+      <button class="btn-gold full" data-a="create" ${joining?'disabled':''}>${joining?'Connexion…':'Créer une table'}</button>
+      <div class="row mt"><input id="code" maxlength="4" placeholder="Code (ex : KXPA)" autocapitalize="characters" autocomplete="off"><button data-a="join" ${joining?'disabled':''}>Rejoindre</button></div>
+      <div class="muted small mt">Crée une table, puis envoie le lien de ce site et le code à 4 lettres à tes amis.</div>`
+    : `<div class="muted">${st === 'loading' ? 'Connexion…' : "Le mode en ligne n'est pas disponible ici. Vérifie ta connexion internet."}</div>`}
+  </div>
+  <div class="box">
+    <h2>⚙️ Règles de la partie</h2>
+    <div class="muted small" style="margin-bottom:4px">Active ou désactive les règles. Touche <b>?</b> pour comprendre chacune d'elles.</div>
+    ${optsHTML(homeOpts, true)}
+  </div>
+  <div class="box">
+    <h2>📜 Comment jouer ?</h2>
+    <div class="muted" style="line-height:1.55">
+      Chaque joueur a ses dés cachés sous un gobelet. Chacun voit seulement les siens.<br><br>
+      À tour de rôle, on fait une <b>annonce</b> sur <b>tous les dés de la table</b> : « je pense qu'il y a au moins <b>quatre 5</b> ».<br><br>
+      Le joueur suivant doit <b>annoncer plus haut</b> (plus de dés, ou autant avec une valeur plus haute : après « quatre 5 », « quatre 6 » ou « cinq 2 »)${homeOpts.dudo || homeOpts.calza ? `, ou bien <b>contester</b> avec ${[homeOpts.dudo && 'Dudo', homeOpts.calza && 'Calza'].filter(Boolean).join(' ou ')}` : ''}.<br><br>
+      Celui qui se trompe perd un dé. Le dernier joueur qui a encore des dés gagne.
+    </div>
+  </div>
+  ${canOfferInstall() ? `<button class="linkbtn" data-a="inst-open">📲 Ajouter Perudo à l'écran d'accueil</button>` : ''}`;
+}
+
+function lobbyHTML(){
+  const host = isHost(), inGame = S.players.some(p => p.id === me);
+  return `
+  <div class="topbar"><div class="logo">PERU<span>DO</span></div><button class="small" data-a="leave">Quitter</button></div>
+  <div class="box" style="text-align:center">
+    <div class="muted">Code de la table</div>
+    <div class="code">${esc(code.toUpperCase())}</div>
+    <div class="muted small">Tes amis ouvrent ce site, tapent ce code et touchent « Rejoindre ».</div>
+    ${host && navigator.clipboard ? `<button class="small mt" data-a="copy">Copier l'invitation</button>` : ''}
+  </div>
+  <div class="box">
+    <h2>Joueurs (${S.players.length}/6)</h2>
+    ${S.players.map((p,i) => `<div class="lob"><span>${p.bot?'🤖 ':'🙂 '}${esc(p.name)}${p.id===me?' <span class="muted">(toi)</span>':''}${i===0&&!p.bot?' <span class="muted">· hôte</span>':''}</span>
+      ${host && p.id !== me ? `<button data-a="kick" data-i="${i}">Retirer</button>` : ''}</div>`).join('')}
+    ${host ? `<div class="row mt">
+      <button data-a="addbot" ${S.players.length>=6?'disabled':''}>+ Ajouter un bot</button>
+      <button class="btn-main" data-a="start" ${S.players.length<2?'disabled':''}>Lancer la partie</button></div>`
+    : `<div class="muted mt">${inGame ? "En attente que l'hôte lance la partie…" : 'Connexion à la table…'}</div>`}
+  </div>
+  <div class="box">
+    <h2>⚙️ Règles de la partie</h2>
+    ${host ? '' : `<div class="muted small" style="margin-bottom:4px">C'est l'hôte qui choisit. Touche <b>?</b> pour comprendre chaque règle.</div>`}
+    ${optsHTML(S.opts, host)}
+  </div>
+  ${!host && Date.now() - lastStateAt > 9000 ? `<div class="warn">Aucune nouvelle de l'hôte. Vérifie le code, ou l'hôte a peut-être quitté.</div>` : ''}`;
+}
+
+function gameHTML(){
+  const o = S.opts, T = totalDice(S), meIdx = S.players.findIndex(p => p.id === me);
+  const myTurn = S.phase === 'play' && S.turn === meIdx;
+  const cur = S.players[S.turn];
+  let h = `<div class="topbar"><div class="logo">PERU<span>DO</span></div>
+    <div class="row" style="flex:0;gap:6px">${code ? `<span class="chip">Table <b>${esc(code.toUpperCase())}</b></span>` : ''}<span class="chip">🎲 ${T}</span>
+    <button class="small" data-a="rules" style="padding:6px 10px">📖</button><button class="small" data-a="leave" style="padding:6px 10px">✕</button></div></div>`;
+  if (mode === 'client' && Date.now() - lastStateAt > 9000) h += `<div class="warn">Connexion perdue avec l'hôte…</div>`;
+  if (meIdx < 0) h += `<div class="note">Tu regardes la partie en spectateur.</div>`;
+
+  h += `<div class="players">${S.players.map((p,i) => `
+    <div class="pl ${i===S.turn && S.phase==='play' ? 'on' : ''} ${p.n===0 ? 'out' : ''}">
+      ${S.pal && i === S.turn && S.phase==='play' && !S.bid ? '<span class="badge">PALIFICO</span>' : ''}
+      <div class="nm">${p.bot?'🤖 ':''}${esc(p.name)}${p.id===me?' (toi)':''}</div>
+      <div class="cups">${'●'.repeat(p.n)}<span class="e">${'●'.repeat(Math.max(0, o.dice - p.n))}</span></div>
+    </div>`).join('')}</div>`;
+
+  h += `<div class="bid">`;
+  if (S.bid){
+    h += `<div class="lbl">Annonce de ${esc(S.players[S.bid.by].name)}</div>
+      <div class="big">${S.bid.q} <span style="font-size:30px;color:var(--muted)">×</span> ${die(S.bid.f)}</div>`;
+  } else {
+    h += `<div class="lbl">Nouvelle manche</div><div class="big" style="font-size:24px;margin:14px 0">Personne n'a encore annoncé</div>`;
+  }
+  if (S.pal) h += `<div class="muted small">🔒 Manche Palifico : valeur bloquée${o.pacos ? ', pacos non jokers' : ''}</div>`;
+  else if (o.pacos) h += `<div class="muted small">⭐ Les pacos (1) comptent comme jokers</div>`;
+  if (S.phase === 'play') h += `<div class="turn ${myTurn?'me':''}">${myTurn ? "👉 C'est à toi !" : `Au tour de ${esc(cur.name)}…`}</div>`;
+  h += `</div>`;
+
+  if (meIdx >= 0){
+    const hand = S.hands[me] || [];
+    h += `<div class="box" style="text-align:center;padding:12px"><div class="muted small">Tes dés</div>
+      <div class="hand">${hand.length ? hand.map(d => die(d, S.bid && counts(S,d,S.bid.f) ? 'hl' : '')).join('') : '<span class="muted">Éliminé 💀</span>'}</div></div>`;
+  }
+
+  if (myTurn){
+    const key = S.v + ':' + me;
+    if (sel.key !== key){
+      sel.key = key;
+      if (S.bid){
+        sel.f = S.bid.f; sel.q = minQ(S, sel.f, meIdx) || S.bid.q;
+        if (!validBid(S, sel.q, sel.f, meIdx)) for (let f=2; f<=6; f++){ const q = minQ(S,f,meIdx); if (q){ sel.f=f; sel.q=q; break; } }
+      } else {
+        const hand = S.hands[me] || [];
+        let bf = 2, bc = -1;
+        for (let f = 2; f <= 6; f++){ const c = hand.filter(d => counts(S,d,f)).length; if (c >= bc){ bc = c; bf = f; } }
+        sel.f = bf; sel.q = Math.max(1, bc);
+      }
+    }
+    const ok = validBid(S, sel.q, sel.f, meIdx);
+    const can = anyBid(S, meIdx);
+    const btns = [`<button class="btn-main" data-a="bid" ${ok?'':'disabled'}>Annoncer ${bidTxt(sel.q, sel.f)}</button>`];
+    if (o.dudo) btns.push(`<button class="btn-red" data-a="dudo" ${S.bid?'':'disabled'}>Dudo&nbsp;!</button>`);
+    if (o.calza) btns.push(`<button class="btn-gold" data-a="calza" ${S.bid?'':'disabled'}>Calza</button>`);
+    const cols = btns.length === 3 ? '2fr 1fr 1fr' : btns.length === 2 ? '2fr 1fr' : '1fr';
+    h += `<div class="ctrl">
+      ${can ? `<div class="qty"><button data-a="q-">−</button><div class="n">${sel.q}</div><button data-a="q+">+</button></div>
+      <div class="faces">${[1,2,3,4,5,6].map(f => `<button data-a="f" data-f="${f}" class="${sel.f===f?'sel':''}">${die(f)}</button>`).join('')}</div>` : ''}
+      <div class="acts" style="grid-template-columns:${cols}">${btns.join('')}</div>
+      <div class="hint">${!can ? `Plus aucune annonce possible : tu dois ${o.dudo ? 'dire Dudo' : 'dire Calza'}${o.dudo && o.calza ? ' ou Calza' : ''}.` : ok ? '' : bidHint(meIdx)}</div>
+    </div>`;
+  }
+
+  h += `<div class="log">${S.log.map(l => `<div>${esc(l)}</div>`).join('')}</div>`;
+  if (S.phase === 'reveal' && S.reveal) h += revealHTML();
+  if (S.phase === 'over') h += overHTML();
+  return h;
+}
+
+function bidHint(idx){
+  if (!S.bid && sel.f === 1 && S.opts.pacos && !S.pal) return "On ne peut pas ouvrir une manche avec des pacos.";
+  if (S.pal && S.bid && S.players[idx].n > 1 && sel.f !== S.bid.f) return "Palifico : la valeur est bloquée, augmente seulement la quantité.";
+  const m = minQ(S, sel.f, idx);
+  return m ? `Minimum pour cette valeur : ${bidTxt(m, sel.f)}` : "Annonce impossible avec cette valeur.";
+}
+
+function revealHTML(){
+  const r = S.reveal, c = S.players[r.caller], b = S.players[r.bidder];
+  const hands = S.players.filter(p => S.hands[p.id]);
+  return `<div class="overlay"><div class="modal">
+    <h2>${r.type === 'dudo' ? 'DUDO !' : 'CALZA !'}</h2>
+    <div class="sub">${esc(c.name)} ${r.type === 'dudo' ? 'conteste' : 'parie sur le compte exact de'} « ${bidTxt(r.q, r.f)} » de ${esc(b.name)}</div>
+    ${hands.map(p => `<div class="rv"><div class="nm">${esc(p.name)}</div>
+      <div class="ds">${S.hands[p.id].map(d => die(d, 'sm ' + (counts(S, d, r.f) ? 'hl' : 'dim'))).join('')}</div></div>`).join('')}
+    <div class="verdict">${esc(r.text)}</div>
+    <div class="muted small" style="text-align:center">${wild(S, r.f) ? 'Les pacos (1) comptent comme jokers.' : ''}</div>
+    ${isHost() ? `<button class="btn-main full mt" data-a="next">Manche suivante</button>` : `<div class="muted small mt" style="text-align:center">Manche suivante dans quelques secondes…</div>`}
+  </div></div>`;
+}
+
+function overHTML(){
+  const w = S.players[S.winner];
+  return `<div class="overlay"><div class="modal" style="text-align:center">
+    <div class="win">🏆</div>
+    <h2>${w && w.id === me ? 'Tu as gagné !' : esc(w ? w.name : '?') + ' gagne !'}</h2>
+    <div class="sub">Le dernier à garder ses dés remporte la partie.</div>
+    ${isHost() ? `<button class="btn-main full mt" data-a="again">Rejouer</button>` : `<div class="muted">En attente de l'hôte pour rejouer…</div>`}
+    <button class="full mt" data-a="leave">Quitter la table</button>
+  </div></div>`;
+}
+
+function rulesHTML(){
+  return `<div class="overlay" data-a="rules-bg"><div class="modal">
+    <h3>📖 Règles de cette partie</h3>
+    <div class="sub">Touche <b>?</b> pour l'explication</div>
+    ${optsHTML(S.opts, false)}
+    <button class="btn-main full mt" data-a="rules-close">Fermer</button>
+  </div></div>`;
+}
+
+/* ================= événements ================= */
+function toggleOpt(o, k){
+  optWarn = '';
+  if (k === 'dudo' && o.dudo && !o.calza){ optWarn = "Il faut garder au moins Dudo ou Calza, sinon personne ne peut jamais contester et la manche ne finit pas."; return false; }
+  if (k === 'calza' && o.calza && !o.dudo){ optWarn = "Il faut garder au moins Dudo ou Calza, sinon personne ne peut jamais contester et la manche ne finit pas."; return false; }
+  o[k] = !o[k];
+  return true;
+}
+document.addEventListener('input', e => {
+  if (e.target.id === 'name'){ myName = e.target.value; store.set('perudo-name', myName); }
+});
+document.addEventListener('change', e => {
+  if (e.target.dataset && e.target.dataset.a === 'dice'){
+    const n = +e.target.value;
+    if (!S){ homeOpts.dice = n; store.set('perudo-opts', JSON.stringify(homeOpts)); render(); }
+    else if (mode === 'host' && S.phase === 'lobby'){ S.opts.dice = n; S.players.forEach(p => p.n = n); homeOpts = {...S.opts}; store.set('perudo-opts', JSON.stringify(homeOpts)); changed(); }
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'code') joinOnline(e.target.value); });
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
+  const a = el.dataset.a;
+  if ((a === 'inst-bg' || a === 'rules-bg') && e.target !== el) return; // clic dans la modale
+  const meIdx = S ? S.players.findIndex(p => p.id === me) : -1;
+  switch (a){
+    case 'solo': startSolo(+$('#nb').value); break;
+    case 'create': createOnline(); break;
+    case 'join': joinOnline($('#code').value); break;
+    case 'leave': leave(); break;
+    case 'info': { const k = el.dataset.k; openInfo.has(k) ? openInfo.delete(k) : openInfo.add(k); render(); break; }
+    case 'opt': {
+      const k = el.dataset.k;
+      if (!S){ toggleOpt(homeOpts, k); store.set('perudo-opts', JSON.stringify(homeOpts)); render(); }
+      else if (mode === 'host' && S.phase === 'lobby'){ if (toggleOpt(S.opts, k)){ homeOpts = {...S.opts}; store.set('perudo-opts', JSON.stringify(homeOpts)); changed(); } else render(); }
+      break;
+    }
+    case 'copy': navigator.clipboard.writeText(`On joue au Perudo ? Ouvre ${location.href.split('#')[0]} et rejoins la table ${code.toUpperCase()} 🎲`).then(() => { el.textContent = 'Copié ✓'; }).catch(() => {}); break;
+    case 'addbot': {
+      const used = S.players.map(p => p.name);
+      const name = BOTS.find(n => !used.includes(n)) || 'Bot';
+      S.players.push({ id:'b' + rnd(1e9), name, bot:true, n:S.opts.dice }); changed(); break;
+    }
+    case 'kick': S.players.splice(+el.dataset.i, 1); changed(); break;
+    case 'start': startGame(S); changed(); break;
+    case 'q-': sel.q = Math.max(1, sel.q - 1); render(); break;
+    case 'q+': sel.q = Math.min(totalDice(S), sel.q + 1); render(); break;
+    case 'f': {
+      sel.f = +el.dataset.f;
+      const m = minQ(S, sel.f, meIdx);
+      if (m && (sel.q < m || (S.bid && !validBid(S, sel.q, sel.f, meIdx)))) sel.q = m;
+      render(); break;
+    }
+    case 'bid': doAction({ type:'bid', q:sel.q, f:sel.f }); break;
+    case 'dudo': doAction({ type:'dudo' }); break;
+    case 'calza': doAction({ type:'calza' }); break;
+    case 'next': if (S.phase === 'reveal'){ endReveal(S); changed(); } break;
+    case 'again': startGame(S); changed(); break;
+    case 'rules': rulesOpen = true; render(); break;
+    case 'rules-close': case 'rules-bg': rulesOpen = false; render(); break;
+    case 'inst-open': installOpen = true; render(); break;
+    case 'inst-go': if (deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.finally(() => { deferredPrompt = null; installOpen = false; render(); }); } break;
+    case 'inst-later': case 'inst-bg': installOpen = false; render(); break;
+    case 'inst-never': store.set('perudo-noinstall', '1'); installOpen = false; render(); break;
+  }
+});
+
+render();
+</script>
+</body>
+</html>
