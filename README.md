@@ -6,4 +6,4 @@ Le jeu de dés menteur, jouable dans le navigateur : en solo contre l'ordi ou en
 - Installable sur téléphone (PWA), mode solo hors connexion
 - Multijoueur via PeerJS (WebRTC) : chaque joueur ne reçoit que ses propres dés
 
-Site : https://maeldubreu-jpg.github.io/perudo/
+Site : https://maeldubreu-jpg.github.io/Perudo/
